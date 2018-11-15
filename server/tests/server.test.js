@@ -12,7 +12,7 @@ beforeEach(populateTodos);
 
 describe('POST /todos', () => {
     it('should create a new todo', (done) => {
-        var text = 'Test todo text';
+        const text = 'Test todo text';
 
         request(app)
             .post('/todos')
@@ -22,16 +22,19 @@ describe('POST /todos', () => {
             .expect((res) => {
                 expect(res.body.text).toBe(text);
             })
-            .end((err, res) => {
+            .end(async (err, res) => {
                 if (err) {
                     return done(err);
                 }
 
-                Todo.find({text}).then((todos) => {
+                try {
+                    const todos = await Todo.find({text});
                     expect(todos.length).toBe(1);
                     expect(todos[0].text).toBe(text);
                     done();
-                }).catch((e) => done(e));
+                } catch (e) {
+                    done(e);
+                }
             });
     });
 
@@ -41,15 +44,18 @@ describe('POST /todos', () => {
             .set('x-auth', users[0].tokens[0].token)
             .send({})
             .expect(400)
-            .end((err, res) => {
+            .end(async (err, res) => {
                 if (err) {
                     return done(err);
                 }
-
-                Todo.find().then((todos) => {
+                
+                try {
+                    const todos = await Todo.find();
                     expect(todos.length).toBe(2);
                     done();
-                }).catch((e) => done(e));
+                } catch (e) {
+                    done(e);
+                }
             });
     });
 });
@@ -116,15 +122,18 @@ describe('DELETE /todos/:id', () => {
             .expect((res) => {
                 expect(res.body.todo._id).toBe(hexId);
             })
-            .end((err, res) => {
+            .end(async (err, res) => {
                 if (err) {
                     return done(err);
                 }
 
-                Todo.findById(hexId).then((todo) => {
+                try {
+                    const todo = await Todo.findById(hexId);
                     expect(todo).toBeFalsy();
                     done();
-                }).catch((e) => done(e));
+                } catch (e) {
+                    done(e);
+                }
             });
     });
 
@@ -135,15 +144,18 @@ describe('DELETE /todos/:id', () => {
             .delete(`/todos/${hexId}`)
             .set('x-auth', users[1].tokens[0].token)
             .expect(404)
-            .end((err, res) => {
+            .end(async (err, res) => {
                 if (err) {
                     return done(err);
                 }
 
-                Todo.findById(hexId).then((todo) => {
+                try {
+                    const todo = await Todo.findById(hexId);
                     expect(todo).toBeTruthy();
                     done();
-                }).catch((e) => done(e));
+                } catch (e) {
+                    done(e);
+                }
             });
     });
 
@@ -260,16 +272,19 @@ describe('POST /users', () => {
                 expect(res.body._id).toBeTruthy();
                 expect(res.body.email).toBe(email);
             })
-            .end((err) => {
+            .end(async (err) => {
                 if (err) {
                     return done(err);
                 }
 
-                User.findOne({email}).then((user) => {
+                try {
+                    const user = await User.findOne({email});
                     expect(user).toBeTruthy();
                     expect(user.password).not.toBe(password);
                     done();
-                }).catch((e) => done(e));
+                } catch (e) {
+                    done(e);
+                }
             });
     });
 
@@ -308,18 +323,21 @@ describe('POST /users/login', () => {
             .expect((res) => {
                 expect(res.headers['x-auth']).toBeTruthy();
             })
-            .end((err, res) => {
+            .end(async (err, res) => {
                 if (err) {
                     return done(err);
                 }
-
-                User.findById(users[1]._id).then((user) => {
+                
+                try {
+                    const user = await User.findById(users[1]._id);
                     expect(user.toObject().tokens[1]).toMatchObject({
                         access: 'auth',
                         token: res.headers['x-auth']
                     });
                     done();
-                }).catch((e) => done(e));
+                } catch (e) {
+                    done(e);
+                }
             });
     });
 
@@ -334,15 +352,18 @@ describe('POST /users/login', () => {
             .expect((res) => {
                 expect(res.headers['x-auth']).toBeFalsy();
             })
-            .end((err, res) => {
+            .end(async (err, res) => {
                 if (err) {
                     return done(err);
                 }
 
-                User.findById(users[1]._id).then((user) => {
+                try {
+                    const user = await User.findById(users[1]._id);
                     expect(user.tokens.length).toBe(1);
                     done();
-                }).catch((e) => done(e));
+                } catch (e) {
+                    done(e);
+                }
             });
     });
 });
@@ -353,15 +374,18 @@ describe('DELETE /users/me/token', () => {
             .delete('/users/me/token')
             .set('x-auth', users[0].tokens[0].token)
             .expect(200)
-            .end((err, res) => {
+            .end(async (err, res) => {
                 if (err) {
                     return done(err);
                 }
 
-                User.findById(users[0]._id).then((user) => {
+                try {
+                    const user = await User.findById(users[0]._id);
                     expect(user.tokens.length).toBe(0);
                     done();
-                }).catch((e) => done(e));
+                } catch (e) {
+                    done(e);
+                }
             });
     });
 });
